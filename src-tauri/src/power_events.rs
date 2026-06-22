@@ -25,7 +25,14 @@ pub fn init_power_events() {
 						}
 					});
 				}
-				PowerState::Suspend | PowerState::Resume | PowerState::Shutdown | PowerState::Unknown => {}
+				PowerState::Resume => {
+					tauri::async_runtime::spawn(async {
+						if let Err(error) = crate::events::outbound::misc::system_did_wake_up().await {
+							log::error!("Failed to send the systemDidWakeUp event: {error}");
+						}
+					});
+				}
+				PowerState::Suspend | PowerState::Shutdown | PowerState::Unknown => {}
 			}
 		}
 	});
