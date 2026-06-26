@@ -12,6 +12,7 @@
 	import Popup from "./Popup.svelte";
 	import Tooltip from "./Tooltip.svelte";
 
+	import { t } from "$lib/i18n";
 	import { getWebserverUrl } from "$lib/ports";
 	import { localisations, settings } from "$lib/settings";
 	import { actionList, deviceSelector, PRODUCT_NAME } from "$lib/singletons";
@@ -29,14 +30,14 @@
 	}, 1e3);
 
 	async function installPlugin(name: string, url: string | null, file: string | null, fallback_id: string | null) {
-		if (!file && !await ask(`It may take a while to install the plugin.`, { title: `Install "${name}"?` })) return;
+		if (!file && !await ask($t("plugin_manager.install.prompt"), { title: $t("plugin_manager.install.title", { name }), okLabel: $t("dialog.yes"), cancelLabel: $t("dialog.no") })) return;
 		try {
 			await invoke("install_plugin", { url, file, fallback_id });
-			message(`Successfully installed "${name}".`, { title: `Installed "${name}"` });
+			message($t("plugin_manager.install.success", { name }), { title: $t("plugin_manager.install.success.title", { name }), buttons: { ok: $t("dialog.ok") } });
 			$actionList?.reload();
 			installed = await invoke("list_plugins");
 		} catch (error: any) {
-			message(error, { title: `Failed to install "${name}"` });
+			message(error, { title: $t("plugin_manager.install.error", { name }), buttons: { ok: $t("dialog.ok") } });
 		}
 	}
 
@@ -82,7 +83,7 @@
 		try {
 			res = await (await fetch(endpoint)).json();
 		} catch (error: any) {
-			message(error, { title: `Failed to install "${plugin.name}"` });
+			message(error, { title: $t("plugin_manager.install.error", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
 			return;
 		}
 
@@ -116,15 +117,21 @@
 	}
 
 	async function removePlugin(plugin: any) {
-		if (!await ask(`Are you sure you want to remove "${plugin.name}"?`, { title: `Remove "${plugin.name}"?` })) return;
+		if (
+			!await ask($t("plugin_manager.remove.prompt", { name: plugin.name }), {
+				title: $t("plugin_manager.remove.title", { name: plugin.name }),
+				okLabel: $t("dialog.yes"),
+				cancelLabel: $t("dialog.no"),
+			})
+		) return;
 		try {
 			await invoke("remove_plugin", { id: plugin.id });
-			message(`Successfully removed "${plugin.name}".`, { title: `Removed "${plugin.name}"` });
+			message($t("plugin_manager.remove.success", { name: plugin.name }), { title: $t("plugin_manager.remove.success.title", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
 			$actionList?.reload();
 			$deviceSelector?.reloadProfiles();
 			installed = await invoke("list_plugins");
 		} catch (error: any) {
-			message(error, { title: `Failed to remove "${plugin.name}"` });
+			message(error, { title: $t("plugin_manager.remove.error", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
 		}
 	}
 
@@ -199,7 +206,7 @@
 	class="px-3 py-1 text-sm text-neutral-300 bg-neutral-700 hover:bg-neutral-600 transition-colors border border-neutral-600 rounded-lg"
 	on:click={() => showPopup = true}
 >
-	Plugins
+	{$t("plugin_manager.button")}
 </button>
 
 <svelte:window
@@ -212,11 +219,11 @@
 	}}
 />
 
-<Popup show={showPopup} label="Manage plugins">
-	<button class="mr-2 my-1 float-right text-xl text-neutral-300" on:click={() => showPopup = false} aria-label="Close">✕</button>
-	<h2 class="m-2 font-semibold text-xl text-neutral-300">Manage plugins</h2>
+<Popup show={showPopup} label={$t("plugin_manager.title")}>
+	<button class="mr-2 my-1 float-right text-xl text-neutral-300" on:click={() => showPopup = false} aria-label={$t("settings.close")}>✕</button>
+	<h2 class="m-2 font-semibold text-xl text-neutral-300">{$t("plugin_manager.title")}</h2>
 
-	<h2 class="mx-2 mt-6 mb-2 text-lg text-neutral-400">Installed plugins</h2>
+	<h2 class="mx-2 mt-6 mb-2 text-lg text-neutral-400">{$t("plugin_manager.installed")}</h2>
 	<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		<!-- deno-fmt-ignore -->
 		{#each installed.sort((a, b) =>
@@ -235,15 +242,15 @@
 					if ($settings?.developer) invoke("reload_plugin", { id: plugin.id });
 					else removePlugin(plugin);
 				}}
-				actionLabel={$settings?.developer ? "Reload" : "Remove"}
+				actionLabel={$settings?.developer ? $t("plugin_manager.reload") : $t("plugin_manager.remove")}}
 				secondaryAction={!plugin.registered ? () => invoke("open_log_directory") : plugin.has_settings_interface ? () => invoke("show_settings_interface", { plugin: plugin.id }) : undefined}
-				secondaryActionLabel={!plugin.registered ? "View logs" : "Settings"}
+				secondaryActionLabel={!plugin.registered ? $t("plugin_manager.view_logs") : $t("plugin_manager.plugin_settings")}}
 			>
 				<svelte:fragment slot="subtitle">
 					{plugin.version}
 					{#if availableUpdates[plugin.id]}
 						(<span class="text-yellow-400">
-							available:
+							{$t("plugin_manager.available")}
 							<button
 								class="font-semibold underline"
 								on:click={() => openDetailsView = plugin.id.endsWith(".sdPlugin") ? plugin.id.slice(0, -9) : plugin.id}
@@ -271,20 +278,20 @@
 	</div>
 
 	<div class="flex flex-row justify-between items-center mx-2 mt-6 mb-2">
-		<h2 class="text-lg text-neutral-400">Plugin store</h2>
+		<h2 class="text-lg text-neutral-400">{$t("plugin_manager.store")}</h2>
 		<button
 			class="flex flex-row items-center mt-2 px-1 py-0.5 text-sm text-neutral-300 bg-neutral-700 hover:bg-neutral-600 transition-colors border border-neutral-600 rounded-lg"
 			on:click={installPluginFile}
 		>
 			<FileArrowUp />
-			<span class="ml-1">Install from file</span>
+			<span class="ml-1">{$t("plugin_manager.install_from_file")}</span>
 		</button>
 	</div>
 
 	<div class="flex flex-row items-center mx-2 my-4 p-3 space-x-2 bg-yellow-900/20 border-l-4 border-yellow-500 rounded">
 		<WarningCircle size="20" class="mt-0.5 text-yellow-500" />
 		<div class="text-sm text-yellow-200">
-			If you are experiencing issues with a plugin, please reach out on one of the {PRODUCT_NAME} support channels before attempting to contact the plugin developer.
+			{$t("plugin_manager.warning", { PRODUCT_NAME })}
 		</div>
 	</div>
 
@@ -293,19 +300,19 @@
 		<input
 			bind:value={query}
 			class="w-full p-2 text-neutral-300"
-			placeholder="Search plugins"
-			aria-label="Search plugins"
+			placeholder={$t("plugin_manager.search")}
+			aria-label={$t("plugin_manager.search")}
 			type="search"
 			spellcheck="false"
 		/>
 	</div>
 
 	{#if !plugins}
-		<h2 class="mx-2 mt-6 mb-2 text-md text-neutral-400">Loading open-source plugin list...</h2>
+		<h2 class="mx-2 mt-6 mb-2 text-md text-neutral-400">{$t("plugin_manager.loading.open_source")}</h2>
 	{:else}
 		<div class="flex flex-row items-center ml-2 mt-6 mb-2 space-x-2">
-			<h2 class="font-semibold text-md text-neutral-400">Open-source plugins</h2>
-			<Tooltip>Open-source plugins downloaded from the author's releases</Tooltip>
+			<h2 class="font-semibold text-md text-neutral-400">{$t("plugin_manager.open_source")}</h2>
+			<Tooltip>{$t("plugin_manager.open_source.tooltip")}</Tooltip>
 		</div>
 		<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each Object.entries(plugins) as [id, plugin]}
@@ -315,7 +322,7 @@
 					subtitle={plugin.author}
 					hidden={!plugin.name.toLowerCase().includes(query.toLowerCase())}
 					action={() => openDetailsView = id}
-					actionLabel="View details"
+					actionLabel={$t("plugin_manager.view_details")}
 				>
 					<ArrowSquareOut size="24" class="text-neutral-400" />
 				</ListedPlugin>
@@ -324,8 +331,8 @@
 	{/if}
 
 	<div class="flex flex-row items-center mt-6 mb-2">
-		<h2 class="mx-2 font-semibold text-md text-neutral-400">Elgato App Store archive</h2>
-		<Tooltip>Plugins archived from the Elgato App Store (now replaced by the Elgato Marketplace)</Tooltip>
+		<h2 class="mx-2 font-semibold text-md text-neutral-400">{$t("plugin_manager.elgato")}</h2>
+		<Tooltip>{$t("plugin_manager.elgato.tooltip")}</Tooltip>
 	</div>
 	{#if !showArchive}
 		<button
@@ -335,10 +342,10 @@
 				archivePlugins = await (await fetch("https://plugins.amankhanna.me/catalogue.json")).json();
 			}}
 		>
-			Load Elgato App Store archive
+			{$t("plugin_manager.elgato.load")}
 		</button>
 	{:else if !archivePlugins}
-		<h2 class="mx-2 mt-4 mb-2 text-md text-neutral-400">Loading Elgato App Store archive plugin list...</h2>
+		<h2 class="mx-2 mt-4 mb-2 text-md text-neutral-400">{$t("plugin_manager.loading.elgato")}</h2>
 	{:else}
 		<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each archivePlugins as plugin}
@@ -348,7 +355,7 @@
 					subtitle={plugin.author}
 					hidden={!plugin.name.toLowerCase().includes(query.toLowerCase())}
 					action={() => installPluginElgato(plugin)}
-					actionLabel="Install"
+					actionLabel={$t("plugin_details.install")}
 				>
 					<CloudArrowDown size="24" class="text-neutral-400" />
 				</ListedPlugin>
@@ -359,7 +366,7 @@
 	{#if "Tacto Connect".toLowerCase().includes(query.toLowerCase())}
 		<div class="flex flex-row items-center mt-6 mb-2">
 			<h2 class="mx-2 font-semibold text-md text-neutral-400">Tacto</h2>
-			<Tooltip>Turn your phone or keyboard into a control centre for your computer</Tooltip>
+			<Tooltip>{$t("plugin_manager.tacto.tooltip")}</Tooltip>
 		</div>
 		<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			<ListedPlugin
@@ -374,9 +381,9 @@
 						download_url: undefined,
 					});
 				}}
-				actionLabel="Install"
+				actionLabel={$t("plugin_details.install")}
 				secondaryAction={() => window.open("https://tacto.live")}
-				secondaryActionLabel="Visit website"
+				secondaryActionLabel={$t("plugin_manager.visit_website")}
 			>
 				<svelte:fragment slot="secondary">
 					<ArrowSquareOut size="24" class="text-neutral-400" />
@@ -402,9 +409,9 @@
 
 {#if choices}
 	<div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 p-2 w-96 text-xs text-neutral-300 bg-neutral-700 border border-neutral-600 rounded-lg z-40">
-		<h3 class="mb-2 font-semibold text-lg text-center">Choose a release asset</h3>
+		<h3 class="mb-2 font-semibold text-lg text-center">{$t("plugin_manager.choose_asset")}</h3>
 		<div class="select-wrapper">
-			<select class="w-full bg-neutral-800!" bind:value={choice} aria-label="Release asset">
+			<select class="w-full bg-neutral-800!" bind:value={choice} aria-label={$t("plugin_manager.choose_asset.label")}>
 				{#each choices as choice, i}
 					<option value={i}>{choice.name}</option>
 				{/each}
@@ -414,7 +421,7 @@
 			class="mt-2 p-1 w-full text-sm text-neutral-300 bg-neutral-800 hover:bg-neutral-900 transition-colors border border-neutral-600 rounded-lg"
 			on:click={finishChoice}
 		>
-			Install
+			{$t("plugin_details.install")}
 		</button>
 	</div>
 {/if}

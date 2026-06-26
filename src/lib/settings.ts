@@ -16,6 +16,7 @@ export type Settings = {
 
 import { invoke } from "@tauri-apps/api/core";
 import { type Writable, writable } from "svelte/store";
+import { locale } from "./i18n.ts";
 
 export const settings: Writable<Settings | null> = writable(null);
 (async () => settings.set(await invoke("get_settings")))();
@@ -23,6 +24,7 @@ export const localisations: Writable<{ [plugin: string]: any } | null> = writabl
 settings.subscribe(async (value) => {
 	if (value) {
 		await invoke("set_settings", { settings: value });
+		locale.set(value.language);
 		localisations.set(await invoke("get_localisations", { locale: value.language }));
 	}
 });

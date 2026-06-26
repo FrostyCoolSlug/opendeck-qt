@@ -3,6 +3,7 @@
 	import type { DeviceInfo } from "$lib/DeviceInfo";
 	import type { Profile } from "$lib/Profile";
 
+	import { t } from "$lib/i18n";
 	import { getWebserverUrl, getWebSocketPort } from "$lib/ports";
 	import { inspectedInstance } from "$lib/propertyInspector";
 
@@ -189,7 +190,7 @@
 	{#each instances as instance (instance.context)}
 		{#if instance.action.property_inspector}
 			<iframe
-				title="Property inspector"
+				title={$t("property_inspector.title")}
 				class="w-full h-full hidden"
 				class:block!={$inspectedInstance == instance.context}
 				src={getWebserverUrl(instance.action.property_inspector + "|opendeck_property_inspector")}
