@@ -76,7 +76,7 @@
 	}
 
 	$: overflowsX = Math.max(device.columns, device.encoders, device.touchpoints) > 8;
-	$: overflowsY = (device.rows + Math.min(device.encoders, 1) + Math.min(device.touchpoints, 1)) > 4;
+	$: overflowsY = device.rows + Math.min(device.encoders, 1) + Math.min(device.touchpoints, 1) > 4;
 
 	// Grid navigation: track focused cell and compute row lengths for arrow key movement.
 	let focusedRow = 0;
@@ -85,7 +85,7 @@
 	$: gridRowLengths = [
 		...Array(device.rows).fill(device.columns),
 		...(device.encoders > 0 ? [device.encoders] : []),
-		...((device.touchpoints > 0 || device.infobars > 0) ? [device.touchpoints + device.infobars] : []),
+		...(device.touchpoints > 0 || device.infobars > 0 ? [device.touchpoints + device.infobars] : []),
 	];
 	$: encoderRowIndex = device.rows;
 	$: touchpointRowIndex = device.rows + (device.encoders > 0 ? 1 : 0);
@@ -158,21 +158,6 @@
 	}
 </script>
 
-<style>
-	.device-fade-x {
-		mask-image: linear-gradient(to right, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent);
-	}
-	.device-fade-y {
-		mask-image: linear-gradient(to bottom, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent);
-	}
-	.device-fade-xy {
-		mask-image:
-			linear-gradient(to right, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent),
-			linear-gradient(to bottom, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent);
-		mask-composite: intersect;
-	}
-</style>
-
 {#key device}
 	<span id="grid-description" class="sr-only">{$t("device_view.grid_description")}</span>
 	<div
@@ -196,11 +181,11 @@
 				<div class="flex flex-row" role="row">
 					{#each { length: device.columns } as _, c}
 						<Key
-							context={{ device: device.id, profile: profile.id, controller: "Keypad", position: (r * device.columns) + c }}
-							bind:inslot={profile.keys[(r * device.columns) + c]}
+							context={{ device: device.id, profile: profile.id, controller: "Keypad", position: r * device.columns + c }}
+							bind:inslot={profile.keys[r * device.columns + c]}
 							on:dragover={handleDragOver}
-							on:drop={(event) => handleDrop(event, "Keypad", (r * device.columns) + c)}
-							on:dragstart={(event) => handleDragStart(event, "Keypad", (r * device.columns) + c)}
+							on:drop={(event) => handleDrop(event, "Keypad", r * device.columns + c)}
+							on:dragstart={(event) => handleDragStart(event, "Keypad", r * device.columns + c)}
 							{handlePaste}
 							size={device.id.startsWith("sd-") && device.rows == 4 && device.columns == 8 ? 192 : 144}
 							label="{$t('device_view.key')} {String.fromCharCode(65 + r)}{c + 1}"
@@ -248,11 +233,11 @@
 					{/each}
 				{/if}
 				<Key
-					context={{ device: device.id, profile: profile.id, controller: "Keypad", position: (device.rows * device.columns) + i }}
-					bind:inslot={profile.keys[(device.rows * device.columns) + i]}
+					context={{ device: device.id, profile: profile.id, controller: "Keypad", position: device.rows * device.columns + i }}
+					bind:inslot={profile.keys[device.rows * device.columns + i]}
 					on:dragover={handleDragOver}
-					on:drop={(event) => handleDrop(event, "Keypad", (device.rows * device.columns) + i)}
-					on:dragstart={(event) => handleDragStart(event, "Keypad", (device.rows * device.columns) + i)}
+					on:drop={(event) => handleDrop(event, "Keypad", device.rows * device.columns + i)}
+					on:dragstart={(event) => handleDragStart(event, "Keypad", device.rows * device.columns + i)}
 					{handlePaste}
 					size={device.id.startsWith("sd-") && device.rows == 4 && device.columns == 8 ? 192 : 144}
 					isTouchPoint
@@ -263,3 +248,18 @@
 		</div>
 	</div>
 {/key}
+
+<style>
+	.device-fade-x {
+		mask-image: linear-gradient(to right, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent);
+	}
+	.device-fade-y {
+		mask-image: linear-gradient(to bottom, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent);
+	}
+	.device-fade-xy {
+		mask-image:
+			linear-gradient(to right, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent),
+			linear-gradient(to bottom, transparent, black 7.5rem, black calc(100% - 7.5rem), transparent);
+		mask-composite: intersect;
+	}
+</style>

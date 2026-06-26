@@ -161,7 +161,7 @@
 		applications = await invoke("get_applications");
 		applicationProfiles = await invoke("get_application_profiles");
 	})();
-	listen("applications", ({ payload }: { payload: string[] }) => applications = payload);
+	listen("applications", ({ payload }: { payload: string[] }) => (applications = payload));
 	let applicationsAddAppName: string = "opendeck_select_application";
 	let applicationsAddProfile: string = "opendeck_select_profile";
 	$: {
@@ -174,7 +174,9 @@
 	}
 	$: {
 		if (applicationProfiles) {
-			applicationProfiles = Object.fromEntries(Object.entries(applicationProfiles).filter(([_, devices]) => Object.values(devices).filter((v) => v).length != 0));
+			applicationProfiles = Object.fromEntries(
+				Object.entries(applicationProfiles).filter(([_, devices]) => Object.values(devices).filter((v) => v).length != 0),
+			);
 			invoke("set_application_profiles", { value: applicationProfiles });
 		}
 	}
@@ -218,7 +220,7 @@
 />
 
 <Popup show={showPopup} label="{device.name} {$t('profile_manager.profiles')}">
-	<button class="mr-1 float-right text-xl text-neutral-300" on:click={() => showPopup = false} aria-label={$t("settings.close")}>✕</button>
+	<button class="mr-1 float-right text-xl text-neutral-300" on:click={() => (showPopup = false)} aria-label={$t("settings.close")}>✕</button>
 	<h2 class="text-xl font-semibold text-neutral-300">{device.name}</h2>
 
 	<div class="flex flex-row mt-2 mb-1">
@@ -245,7 +247,7 @@
 
 		<button
 			class="ml-2 px-4 flex items-center text-neutral-300 bg-neutral-900 hover:bg-neutral-800 transition-colors border border-neutral-600 rounded-lg"
-			on:click={() => showApplicationManager = true}
+			on:click={() => (showApplicationManager = true)}
 			aria-label={$t("profile_manager.application_profiles")}
 		>
 			<Browsers size={24} />
@@ -268,6 +270,7 @@
 						aria-label={id ? profile.split("/")[1] : profile}
 					/>
 					{#if profile == renamingProfile}
+						<!-- prettier-ignore -->
 						<input
 							bind:this={renameInput}
 							bind:value={newId}
@@ -287,11 +290,7 @@
 							<Copy size="20" class="text-neutral-400" />
 						</button>
 						{#if profile != value}
-							<button
-								on:click={() => renamingProfile = newId = profile}
-								title={$t("profile_manager.rename")}
-								aria-label={$t("profile_manager.rename")}
-							>
+							<button on:click={() => (renamingProfile = newId = profile)} title={$t("profile_manager.rename")} aria-label={$t("profile_manager.rename")}>
 								<Pencil size="20" class="text-neutral-400" />
 							</button>
 							<button on:click={() => deleteProfile(profile)} title={$t("profile_manager.delete")} aria-label={$t("profile_manager.delete")}>
@@ -306,13 +305,13 @@
 </Popup>
 
 <Popup show={showApplicationManager} label={$t("profile_manager.application_profiles")}>
-	<button class="mr-1 float-right text-xl text-neutral-300" on:click={() => showApplicationManager = false} aria-label={$t("settings.close")}>✕</button>
+	<button class="mr-1 float-right text-xl text-neutral-300" on:click={() => (showApplicationManager = false)} aria-label={$t("settings.close")}>✕</button>
 	<h2 class="text-xl font-semibold text-neutral-300">{device.name}</h2>
 	<span class="text-sm text-neutral-400">{$t("profile_manager.application_profiles.hint.1")}</span>
 	<span class="text-sm text-neutral-400">{$t("profile_manager.application_profiles.hint.2")}</span>
 
 	<table class="w-full text-neutral-300 divide-y divide-neutral-500!">
-		{#each Object.entries(applicationProfiles).sort((a, b) => a[0] == "opendeck_default" ? -1 : b[0] == "opendeck_default" ? 1 : a[0].localeCompare(b[0])) as [appName, devices]}
+		{#each Object.entries(applicationProfiles).sort( (a, b) => (a[0] == "opendeck_default" ? -1 : b[0] == "opendeck_default" ? 1 : a[0].localeCompare(b[0])), ) as [appName, devices]}
 			{#if devices[device.id]}
 				<tr class="h-12">
 					<td>{appName == "opendeck_default" ? $t("profile_manager.default_profile") : appName}:</td>
@@ -320,7 +319,9 @@
 						<select
 							bind:value={applicationProfiles[appName][device.id]}
 							class="w-full"
-							aria-label={$t("profile_manager.application_profiles.aria", { name: appName == "opendeck_default" ? $t("profile_manager.default_profile") : appName })}
+							aria-label={$t("profile_manager.application_profiles.aria", {
+								name: appName == "opendeck_default" ? $t("profile_manager.default_profile") : appName,
+							})}
 						>
 							{#each Object.entries(folders) as [id, profiles]}
 								{#if id && profiles.length}

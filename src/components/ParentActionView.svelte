@@ -33,10 +33,7 @@
 	async function addAction(action: Action) {
 		if (
 			(parentUuid == "opendeck.multiaction" && !action.supported_in_multi_actions) ||
-			(
-				parentUuid == "opendeck.toggleaction" &&
-				(action.uuid == "opendeck.multiaction" || action.uuid == "opendeck.toggleaction")
-			)
+			(parentUuid == "opendeck.toggleaction" && (action.uuid == "opendeck.multiaction" || action.uuid == "opendeck.toggleaction"))
 		) {
 			return;
 		}
@@ -113,7 +110,7 @@
 />
 
 <div class="px-6 pt-6 pb-4 text-neutral-300">
-	<button class="float-right text-xl" on:click={() => $inspectedParentAction = null} aria-label={$t("settings.close")}>✕</button>
+	<button class="float-right text-xl" on:click={() => ($inspectedParentAction = null)} aria-label={$t("settings.close")}>✕</button>
 	<h1 class="font-semibold text-2xl">{parentUuid == "opendeck.toggleaction" ? $t("parent_action.toggle") : $t("parent_action.multi")}</h1>
 </div>
 
@@ -121,7 +118,7 @@
 <div
 	bind:this={listEl}
 	class="flex flex-col h-128 overflow-auto"
-	on:click={() => $inspectedInstance = null}
+	on:click={() => ($inspectedInstance = null)}
 	role="list"
 	aria-label="{parentUuid == 'opendeck.toggleaction' ? $t('parent_action.toggle') : $t('parent_action.multi')} {$t('parent_action.children')}"
 	on:keydown={handleListKeydown}
@@ -130,8 +127,8 @@
 		<!-- svelte-ignore a11y-no-noninteractive-tabindex a11y-no-noninteractive-element-interactions -->
 		<div
 			class="flex flex-row items-center mx-4 my-2 bg-neutral-700 hover:bg-neutral-600 transition-colors border border-neutral-600 rounded-lg focus-within:outline-solid focus-within:outline-offset-2 focus-within:outline-blue-500"
-			on:click|stopPropagation={() => $inspectedInstance = instance.context}
-			on:focus|stopPropagation={() => $inspectedInstance = instance.context}
+			on:click|stopPropagation={() => ($inspectedInstance = instance.context)}
+			on:focus|stopPropagation={() => ($inspectedInstance = instance.context)}
 			on:keydown={(e) => {
 				if (e.key == "Delete") removeInstance(index, true);
 			}}
@@ -163,8 +160,8 @@
 		class="flex flex-row items-center mx-4 mt-2 mb-4 p-3 bg-neutral-700 hover:bg-neutral-600 transition-colors border border-dashed border-neutral-600 rounded-lg focus-within:outline-solid focus-within:outline-offset-2 focus-within:outline-blue-500"
 		on:dragover={handleDragOver}
 		on:drop={handleDrop}
-		on:click={() => $inspectedInstance = null}
-		on:focus={() => $inspectedInstance = null}
+		on:click={() => ($inspectedInstance = null)}
+		on:focus={() => ($inspectedInstance = null)}
 		on:keydown={(e) => {
 			if ((e.ctrlKey || e.metaKey) && e.key == "v") handlePaste();
 		}}

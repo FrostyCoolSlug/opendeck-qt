@@ -3,6 +3,7 @@
 ## Token Efficiency
 
 Respond like smart caveman. Cut all filler, keep technical substance.
+
 - Drop articles (a, an, the), filler (just, really, basically, actually).
 - Drop pleasantries (sure, certainly, happy to).
 - No hedging. Fragments fine. Short synonyms.
@@ -12,6 +13,7 @@ Respond like smart caveman. Cut all filler, keep technical substance.
 ## Architecture Overview
 
 OpenDeck is a Tauri desktop application for controlling Elgato Stream Deck devices. It's built with:
+
 - **Backend**: Rust (Tauri v2) - device communication, plugin management, WebSocket/HTTP servers
 - **Frontend**: SvelteKit + TypeScript + Tailwind CSS v4 - UI rendered in webview
 - **Build Tool**: Deno (not Node.js) - manages tasks and dependencies
@@ -19,6 +21,7 @@ OpenDeck is a Tauri desktop application for controlling Elgato Stream Deck devic
 ### Core Architecture Pattern
 
 OpenDeck acts as a **host application** that communicates with **plugins** (separate processes):
+
 1. Plugins connect via WebSocket (port dynamically allocated, starting from 57116)
 2. Static assets served via `tiny_http` webserver (port = WebSocket port + 2)
 3. Plugin property inspectors (HTML/JS) run in iframes and use separate WebSocket connections
@@ -53,12 +56,14 @@ plugins/com.amansprojects.starterpack.sdPlugin/  # Plugin with basic actions
 ### Type Synchronization
 
 TypeScript types in `src/lib/` **must** mirror Rust structs in `src-tauri/src/shared.rs`:
+
 - `Context`, `ActionInstance`, `ActionState`, `DeviceInfo`, `Profile`
 - Changes to Rust structs require updating corresponding TypeScript types
 
 ### Context System
 
 A `Context` identifies a button/encoder position:
+
 ```rust
 struct Context {
     device: String,    // Device vendor prefix and serial number
@@ -111,6 +116,7 @@ An `ActionContext` extends this with an action instance index for nested actions
 ### Profile Management
 
 Profiles are device-specific JSON files in `<config_dir>/<device_id>/<profile_name>.json`:
+
 ```rust
 // Read profile
 let locks = crate::store::profiles::acquire_locks().await;
@@ -147,6 +153,7 @@ Auto-switching: `application_watcher.rs` polls active window every 250ms, trigge
 ### WebSocket Protocol
 
 Port allocation: `PORT_BASE` (WebSocket), `PORT_BASE + 2` (HTTP static files)
+
 - Dynamic port selection: Tries ports starting at 57116 until both WebSocket and HTTP ports are available
 - Registration: Plugins send `RegisterEvent::RegisterPlugin { uuid }`, property inspectors send `RegisterPropertyInspector`
 - Message queuing: `PLUGIN_QUEUES` buffers messages until plugin connects

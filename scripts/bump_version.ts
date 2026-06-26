@@ -54,7 +54,10 @@ async function bumpStarterPackManifestVersion(version: string) {
 async function prependMetainfoRelease(version: string) {
 	const fromRef = await run("git", ["describe", "--tags", "--abbrev=0"]);
 	const subjectsRaw = await run("git", ["log", "--reverse", "--pretty=format:%s", `${fromRef}..HEAD`]);
-	const subjects = subjectsRaw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+	const subjects = subjectsRaw
+		.split(/\r?\n/)
+		.map((s) => s.trim())
+		.filter(Boolean);
 
 	const xml = await Deno.readTextFile(METAINFO);
 	if (xml.includes(`version="${version}"`)) throw new Error(`opendeck.metainfo.xml already contains ${version}`);

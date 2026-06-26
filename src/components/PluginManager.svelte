@@ -30,10 +30,21 @@
 	}, 1e3);
 
 	async function installPlugin(name: string, url: string | null, file: string | null, fallback_id: string | null) {
-		if (!file && !await ask($t("plugin_manager.install.prompt"), { title: $t("plugin_manager.install.title", { name }), okLabel: $t("dialog.yes"), cancelLabel: $t("dialog.no") })) return;
+		if (
+			!file &&
+			!(await ask($t("plugin_manager.install.prompt"), {
+				title: $t("plugin_manager.install.title", { name }),
+				okLabel: $t("dialog.yes"),
+				cancelLabel: $t("dialog.no"),
+			}))
+		)
+			return;
 		try {
 			await invoke("install_plugin", { url, file, fallback_id });
-			message($t("plugin_manager.install.success", { name }), { title: $t("plugin_manager.install.success.title", { name }), buttons: { ok: $t("dialog.ok") } });
+			message($t("plugin_manager.install.success", { name }), {
+				title: $t("plugin_manager.install.success.title", { name }),
+				buttons: { ok: $t("dialog.ok") },
+			});
 			$actionList?.reload();
 			installed = await invoke("list_plugins");
 		} catch (error: any) {
@@ -121,15 +132,19 @@
 
 	async function removePlugin(plugin: any) {
 		if (
-			!await ask($t("plugin_manager.remove.prompt", { name: plugin.name }), {
+			!(await ask($t("plugin_manager.remove.prompt", { name: plugin.name }), {
 				title: $t("plugin_manager.remove.title", { name: plugin.name }),
 				okLabel: $t("dialog.yes"),
 				cancelLabel: $t("dialog.no"),
-			})
-		) return;
+			}))
+		)
+			return;
 		try {
 			await invoke("remove_plugin", { id: plugin.id });
-			message($t("plugin_manager.remove.success", { name: plugin.name }), { title: $t("plugin_manager.remove.success.title", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
+			message($t("plugin_manager.remove.success", { name: plugin.name }), {
+				title: $t("plugin_manager.remove.success.title", { name: plugin.name }),
+				buttons: { ok: $t("dialog.ok") },
+			});
 			$actionList?.reload();
 			$deviceSelector?.reloadProfiles();
 			installed = await invoke("list_plugins");
@@ -165,10 +180,10 @@
 	}
 
 	let installed: any[] = [];
-	(async () => installed = await invoke("list_plugins"))();
+	(async () => (installed = await invoke("list_plugins")))();
 
 	let plugins: { [id: string]: GitHubPlugin };
-	(async () => plugins = await (await fetch("https://openactionapi.github.io/plugins/catalogue.json")).json())();
+	(async () => (plugins = await (await fetch("https://openactionapi.github.io/plugins/catalogue.json")).json()))();
 
 	let showArchive: boolean = false;
 	let archivePlugins: any[] | null = null;
@@ -179,8 +194,7 @@
 		for (const plugin of installed) {
 			if (!checkedPlugins.has(plugin.id)) {
 				checkedPlugins.add(plugin.id);
-				isUpdateAvailable(plugin)
-					.then((version) => availableUpdates = { ...availableUpdates, [plugin.id]: version });
+				isUpdateAvailable(plugin).then((version) => (availableUpdates = { ...availableUpdates, [plugin.id]: version }));
 			}
 		}
 	}
@@ -207,7 +221,7 @@
 
 <button
 	class="px-3 py-1 text-sm text-neutral-300 bg-neutral-700 hover:bg-neutral-600 transition-colors border border-neutral-600 rounded-lg"
-	on:click={() => showPopup = true}
+	on:click={() => (showPopup = true)}
 >
 	{$t("plugin_manager.button")}
 </button>
@@ -223,12 +237,12 @@
 />
 
 <Popup show={showPopup} label={$t("plugin_manager.title")}>
-	<button class="mr-2 my-1 float-right text-xl text-neutral-300" on:click={() => showPopup = false} aria-label={$t("settings.close")}>✕</button>
+	<button class="mr-2 my-1 float-right text-xl text-neutral-300" on:click={() => (showPopup = false)} aria-label={$t("settings.close")}>✕</button>
 	<h2 class="m-2 font-semibold text-xl text-neutral-300">{$t("plugin_manager.title")}</h2>
 
 	<h2 class="mx-2 mt-6 mb-2 text-lg text-neutral-400">{$t("plugin_manager.installed")}</h2>
 	<div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-		<!-- deno-fmt-ignore -->
+		<!-- prettier-ignore -->
 		{#each installed.sort((a, b) =>
 			(a.builtin && !b.builtin) ? -1 :
 			(b.builtin && !a.builtin) ? 1 :
@@ -324,7 +338,7 @@
 					name={plugin.name}
 					subtitle={plugin.author}
 					hidden={!plugin.name.toLowerCase().includes(query.toLowerCase())}
-					action={() => openDetailsView = id}
+					action={() => (openDetailsView = id)}
 					actionLabel={$t("plugin_manager.view_details")}
 				>
 					<ArrowSquareOut size="24" class="text-neutral-400" />
@@ -406,12 +420,14 @@
 			// @ts-expect-error
 			installPluginGitHub(openDetailsView, plugins[openDetailsView]);
 		}}
-		close={() => openDetailsView = null}
+		close={() => (openDetailsView = null)}
 	/>
 {/if}
 
 {#if choices}
-	<div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 p-2 w-96 text-xs text-neutral-300 bg-neutral-700 border border-neutral-600 rounded-lg z-40">
+	<div
+		class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 p-2 w-96 text-xs text-neutral-300 bg-neutral-700 border border-neutral-600 rounded-lg z-40"
+	>
 		<h3 class="mb-2 font-semibold text-lg text-center">{$t("plugin_manager.choose_asset")}</h3>
 		<div class="select-wrapper">
 			<select class="w-full bg-neutral-800!" bind:value={choice} aria-label={$t("plugin_manager.choose_asset.label")}>

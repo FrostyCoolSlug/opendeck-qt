@@ -73,7 +73,7 @@
 				{/each}
 			</select>
 		</div>
-		<button class="ml-2 mr-1 float-right text-xl text-neutral-300" on:click={() => showEditor = false} aria-label={$t("settings.close")}>✕</button>
+		<button class="ml-2 mr-1 float-right text-xl text-neutral-300" on:click={() => (showEditor = false)} aria-label={$t("settings.close")}>✕</button>
 	</div>
 	<div class="flex flex-row mx-1">
 		<div class="flex flex-col justify-center items-center mt-2 mb-1">
@@ -141,12 +141,7 @@
 				class="mt-1 px-0.5 text-sm text-neutral-300 bg-neutral-600 hover:bg-neutral-500 transition-colors border border-neutral-500 rounded-lg"
 			>
 				{$t("instance_editor.background")}
-				<input
-					bind:this={backgroundColourInput}
-					type="color"
-					bind:value={instance.states[state].background_colour}
-					class="absolute invisible w-0 h-0"
-				/>
+				<input bind:this={backgroundColourInput} type="color" bind:value={instance.states[state].background_colour} class="absolute invisible w-0 h-0" />
 			</button>
 			<button
 				on:click={() => solidColourInput.click()}
@@ -225,17 +220,8 @@
 					id="editor-colour"
 				/>
 				<label for="editor-show" class="mr-2">{$t("instance_editor.show")}</label>
-				<input
-					type="checkbox"
-					bind:checked={instance.states[state].show}
-					class="mr-4 mt-1 scale-125"
-					id="editor-show"
-				/>
-				<select
-					bind:value={instance.states[state].alignment}
-					class="px-1! py-0.5!"
-					aria-label={$t("instance_editor.alignment")}
-				>
+				<input type="checkbox" bind:checked={instance.states[state].show} class="mr-4 mt-1 scale-125" id="editor-show" />
+				<select bind:value={instance.states[state].alignment} class="px-1! py-0.5!" aria-label={$t("instance_editor.alignment")}>
 					<option value="top">{$t("instance_editor.alignment.top")}</option>
 					<option value="middle">{$t("instance_editor.alignment.middle")}</option>
 					<option value="bottom">{$t("instance_editor.alignment.bottom")}</option>
@@ -287,7 +273,7 @@
 				<input
 					type="checkbox"
 					bind:checked={bold}
-					on:change={() => instance.states[state].style = bold && italic ? "Bold Italic" : bold ? "Bold" : italic ? "Italic" : "Regular"}
+					on:change={() => (instance.states[state].style = bold && italic ? "Bold Italic" : bold ? "Bold" : italic ? "Italic" : "Regular")}
 					class="mr-4 mt-1 scale-125"
 					id="editor-bold"
 				/>
@@ -295,17 +281,12 @@
 				<input
 					type="checkbox"
 					bind:checked={italic}
-					on:change={() => instance.states[state].style = bold && italic ? "Bold Italic" : bold ? "Bold" : italic ? "Italic" : "Regular"}
+					on:change={() => (instance.states[state].style = bold && italic ? "Bold Italic" : bold ? "Bold" : italic ? "Italic" : "Regular")}
 					class="mr-4 mt-1 scale-125"
 					id="editor-italic"
 				/>
 				<label for="editor-underline" class="mr-3 underline">U</label>
-				<input
-					type="checkbox"
-					bind:checked={instance.states[state].underline}
-					class="mr-4 mt-1 scale-125"
-					id="editor-underline"
-				/>
+				<input type="checkbox" bind:checked={instance.states[state].underline} class="mr-4 mt-1 scale-125" id="editor-underline" />
 				<label for="editor-size" class="mr-2">{$t("instance_editor.font.size")}</label>
 				<input
 					type="number"

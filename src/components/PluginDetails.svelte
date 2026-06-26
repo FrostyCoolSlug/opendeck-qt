@@ -74,20 +74,12 @@
 <Popup show label={$t("plugin_details.title").replaceAll("{details.name}", details.name)}>
 	<button class="mr-2 my-1 float-right text-xl text-neutral-300" on:click={close} aria-label={$t("settings.close")}>✕</button>
 	<div class="flex flex-row items-start">
-		<img
-			src={"https://openactionapi.github.io/plugins/icons/" + id + ".png"}
-			alt={details.name}
-			class="size-48 rounded-2xl"
-		/>
+		<img src={"https://openactionapi.github.io/plugins/icons/" + id + ".png"} alt={details.name} class="size-48 rounded-2xl" />
 		<div class="flex flex-col justify-center h-48 ml-8">
 			<div class="text-3xl text-neutral-200">{details.name}</div>
 			<div class="flex items-center mt-2 text-lg text-neutral-400">
 				<span class="mr-2">{$t("plugin_details.by")}</span>
-				<img
-					src={"https://avatars.githubusercontent.com/" + details.repository.split("/")[3]}
-					alt="Author avatar"
-					class="size-7 mr-1.5 rounded-full"
-				/>
+				<img src={"https://avatars.githubusercontent.com/" + details.repository.split("/")[3]} alt="Author avatar" class="size-7 mr-1.5 rounded-full" />
 				<a
 					target="_blank"
 					href={"https://github.com/" + details.repository.split("/")[3]}

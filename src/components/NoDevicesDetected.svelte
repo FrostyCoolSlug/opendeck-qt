@@ -5,7 +5,7 @@
 	import { invoke } from "@tauri-apps/api/core";
 
 	let buildInfo: string;
-	(async () => buildInfo = await invoke("get_build_info"))();
+	(async () => (buildInfo = await invoke("get_build_info")))();
 </script>
 
 <div class="flex flex-col justify-center items-center w-full h-full text-center text-neutral-300">

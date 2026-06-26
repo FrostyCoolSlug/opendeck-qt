@@ -18,7 +18,7 @@
 
 	let showPopup: boolean;
 	let buildInfo: string;
-	(async () => buildInfo = await invoke("get_build_info"))();
+	(async () => (buildInfo = await invoke("get_build_info")))();
 
 	listen("device_brightness", ({ payload }: { payload: { action: string; value: number } }) => {
 		if (!$settings) return;
@@ -38,30 +38,21 @@
 	});
 
 	async function backupConfig() {
-		await message(
-			$t("settings.backup_config.prompt"),
-			{ title: $t("settings.backup_config.title"), buttons: { ok: $t("dialog.ok") } },
-		);
+		await message($t("settings.backup_config.prompt"), { title: $t("settings.backup_config.title"), buttons: { ok: $t("dialog.ok") } });
 		if (await invoke("backup_config_directory")) {
-			await message(
-				$t("settings.backup_config.success.prompt"),
-				{ title: $t("settings.backup_config.success.title"), buttons: { ok: $t("dialog.ok") } },
-			);
+			await message($t("settings.backup_config.success.prompt"), { title: $t("settings.backup_config.success.title"), buttons: { ok: $t("dialog.ok") } });
 		}
 	}
 
 	async function restoreConfig() {
-		await message(
-			$t("settings.restore_config.prompt"),
-			{ title: $t("settings.restore_config.title"), buttons: { ok: $t("dialog.ok") } },
-		);
+		await message($t("settings.restore_config.prompt"), { title: $t("settings.restore_config.title"), buttons: { ok: $t("dialog.ok") } });
 		await invoke("restore_config_directory");
 	}
 </script>
 
 <button
 	class="px-3 py-1 text-sm text-neutral-300 bg-neutral-700 hover:bg-neutral-600 transition-colors border border-neutral-600 rounded-lg"
-	on:click={() => showPopup = true}
+	on:click={() => (showPopup = true)}
 >
 	{$t("settings.button")}
 </button>
@@ -73,7 +64,7 @@
 />
 
 <Popup show={showPopup} label={$t("settings.button")}>
-	<button class="mr-2 my-1 float-right text-xl text-neutral-300" on:click={() => showPopup = false} aria-label={$t("settings.close")}>✕</button>
+	<button class="mr-2 my-1 float-right text-xl text-neutral-300" on:click={() => (showPopup = false)} aria-label={$t("settings.close")}>✕</button>
 	<h2 class="m-2 font-semibold text-xl text-neutral-300">{$t("settings.button")}</h2>
 	{#if $settings}
 		<div class="flex flex-row items-center m-2 space-x-2">
@@ -101,15 +92,21 @@
 
 		<div class="flex flex-row items-center m-2 space-x-2">
 			<label for="settings-sleep_timeout_minutes" class="text-neutral-400">{$t("settings.sleep_timeout_minutes")}</label>
-			<input type="number" min="0" bind:value={$settings.sleep_timeout_minutes} class="w-12 px-1 text-neutral-300 border border-neutral-600 rounded-lg" id="settings-sleep_timeout_minutes" />
+			<input
+				type="number"
+				min="0"
+				bind:value={$settings.sleep_timeout_minutes}
+				class="w-12 px-1 text-neutral-300 border border-neutral-600 rounded-lg"
+				id="settings-sleep_timeout_minutes"
+			/>
 			<span class="text-neutral-400">{$t("settings.sleep_timeout_minutes.minutes")}</span>
-			<Tooltip> {$t("settings.sleep_timeout_minutes.tooltip")} </Tooltip>
+			<Tooltip>{$t("settings.sleep_timeout_minutes.tooltip")}</Tooltip>
 		</div>
 
 		<div class="flex flex-row items-center m-2 space-x-2">
 			<label for="settings-sleep_when_computer_locked" class="text-neutral-400">{$t("settings.sleep_when_computer_locked")}</label>
 			<input type="checkbox" bind:checked={$settings.sleep_when_computer_locked} id="settings-sleep_when_computer_locked" />
-			<Tooltip> {$t("settings.sleep_when_computer_locked.tooltip")} </Tooltip>
+			<Tooltip>{$t("settings.sleep_when_computer_locked.tooltip")}</Tooltip>
 		</div>
 
 		<div class="flex flex-row items-center m-2 space-x-2">
