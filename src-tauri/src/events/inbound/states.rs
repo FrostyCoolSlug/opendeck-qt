@@ -4,7 +4,7 @@ use crate::events::frontend::instances::update_state;
 use crate::store::profiles::{acquire_locks_mut, debounce_profile_save, get_instance_mut, save_profile};
 
 use anyhow::bail;
-use log::warn;
+use log::trace;
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -135,7 +135,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 					Some(k) if k == key
 				)
 			}) else {
-				warn!("setFeedback: no layout item found for key '{key}'");
+				trace!("setFeedback: no layout item found for key '{key}'");
 				continue;
 			};
 
@@ -144,7 +144,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 				Value::String(_) | Value::Number(_) => {
 					// Get the item type
 					let Some(item_type) = item.get("type").and_then(Value::as_str) else {
-						warn!("setFeedback: no type found for key '{key}'");
+						trace!("setFeedback: no type found for key '{key}'");
 						continue;
 					};
 
@@ -165,7 +165,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 									item["value"] = Value::Number(value.clone());
 								}
 							} else {
-								warn!("setFeedback: bar/gbar expected number for key '{key}'");
+								trace!("setFeedback: bar/gbar expected number for key '{key}'");
 							}
 						}
 
@@ -176,7 +176,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 
 						// Ignore anything else
 						_ => {
-							warn!("setFeedback: unknown item type '{item_type}' for key '{key}'");
+							trace!("setFeedback: unknown item type '{item_type}' for key '{key}'");
 						}
 					}
 				}
@@ -185,7 +185,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 				Value::Object(obj) => {
 					// Get the item type
 					let Some(item_type) = item.get("type").and_then(Value::as_str) else {
-						warn!("setFeedback: missing or invalid 'type' field in item: {:?}", item);
+						trace!("setFeedback: missing or invalid 'type' field in item: {:?}", item);
 						continue;
 					};
 
@@ -196,7 +196,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 						"bar" => BAR_KEYS.to_vec(),
 						"gbar" => BAR_KEYS.iter().copied().chain(["bar_h"]).collect(),
 						unknown => {
-							warn!("setFeedback: unknown item type '{unknown}' for key '{key}'");
+							trace!("setFeedback: unknown item type '{unknown}' for key '{key}'");
 							continue;
 						}
 					};
@@ -213,7 +213,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 				}
 
 				_ => {
-					warn!("setFeedback: key '{key}' has unexpected payload type, ignoring");
+					trace!("setFeedback: key '{key}' has unexpected payload type, ignoring");
 				}
 			}
 		}
