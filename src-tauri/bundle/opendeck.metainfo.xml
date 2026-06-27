@@ -53,6 +53,16 @@
 	</branding>
 
 	<releases>
+		<release version="2.13.1" date="2026-06-27">
+			<url type="details">https://github.com/nekename/OpenDeck/releases/tag/v2.13.1</url>
+			<description>
+				<ul>
+					<li>fix: resolve missing localisation keys in ParentActionView and consolidate its key namespace</li>
+					<li>fix: accept string values for bars and correctly canonicalise comparison path for encoder layouts (#372)</li>
+					<li>fix: update psp to latest upstream to ensure SessionUnlocked event is triggered on KDE Plasma sessions</li>
+				</ul>
+			</description>
+		</release>
 		<release version="2.13.0" date="2026-06-26">
 			<url type="details">https://github.com/nekename/OpenDeck/releases/tag/v2.13.0</url>
 			<description>
