@@ -267,6 +267,10 @@ pub fn initialise_encoder_layout(action: &mut Action, layout: Option<String>) ->
 		let plugin_dir = config_dir().join("plugins").join(&action.plugin);
 		let layout_file = plugin_dir.join(&load_layout);
 
+		let Ok(plugin_dir) = plugin_dir.canonicalize() else {
+			bail!("Failed to canonicalize plugin directory: {}", plugin_dir.display());
+		};
+
 		match layout_file.canonicalize() {
 			Ok(resolved) if resolved.starts_with(&plugin_dir) => resolved.to_string_lossy().into_owned(),
 			Ok(_) => {

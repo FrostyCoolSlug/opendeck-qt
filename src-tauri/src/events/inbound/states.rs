@@ -161,11 +161,13 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 
 						"bar" | "gbar" => {
 							if let Value::Number(value) = payload_value {
-								if key == "value" {
-									item["value"] = Value::Number(value.clone());
+								item["value"] = Value::Number(value.clone());
+							} else if let Value::String(value) = payload_value {
+								if let Ok(value) = value.parse() {
+									item["value"] = Value::Number(value);
+								} else {
+									trace!("setFeedback: bar/gbar unexpected value for key '{key}' - {value}");
 								}
-							} else {
-								trace!("setFeedback: bar/gbar expected number for key '{key}'");
 							}
 						}
 
