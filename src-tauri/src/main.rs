@@ -18,17 +18,21 @@ mod built_info {
 
 use events::frontend;
 use shared::PRODUCT_NAME;
+use std::env;
 
 use crate::plugins::SpawnRequest;
 use crate::qt::backend::Backend;
-use qtbridge::QApp;
-use std::sync::{OnceLock, mpsc};
 use log::warn;
+use qtbridge::{QApp, include_bytes_qml};
+use std::sync::{OnceLock, mpsc};
 use tauri::{
 	AppHandle, Builder, Manager,
 	menu::{IconMenuItemBuilder, MenuBuilder, MenuItemBuilder, PredefinedMenuItem},
 	tray::{MouseButtonState, TrayIconBuilder, TrayIconEvent},
 };
+
+
+const MAIN_QML_TEMPLATE: &str = include_str!("../../static/Main.qml");
 
 //static APP_HANDLE: OnceLock<AppHandle> = OnceLock::new();
 static MESSAGE_BUS: OnceLock<MessageBus> = OnceLock::new();
@@ -216,12 +220,38 @@ async fn main() {
 	// 	}
 	// });
 
+	let mut flags = vec![
+		"--disable-software-rasterizer",
+		"--disable-dev-shm-usage",
+		"--disable-background-networking",
+		"--disable-renderer-backgrounding",
+		"--js-flags=--expose-gc,--max-old-space-size=192",
+		"--num-raster-threads=2",
+		"--single-process",
+		"--disable-web-security",
+	];
+
+	// Disable the Chromium Sandbox when running from a flatpak, as flatpak handles
+	// the sandboxing, and this can conflict
+	if env::var("FLATPAK_SANDBOX_DIR").is_ok() {
+		flags.push("--no-sandbox");
+		flags.push("--disable-setuid-sandbox");
+	}
+
+	unsafe {
+		//env::set_var("QT_QPA_PLATFORM", "xcb");
+		env::set_var("RUST_LOG", "info");
+		env::set_var("QTWEBENGINE_CHROMIUM_FLAGS", flags.join(" "));
+	}
+
 	env_logger::init();
 
 	plugins::initialise_plugins();
 	application_watcher::init_application_watcher();
 	device_sleep::init_device_sleep();
 	power_events::init_power_events();
+
+	//embedded_qt_resources();
 
 	tokio::spawn(async {
 		loop {
@@ -230,13 +260,59 @@ async fn main() {
 		}
 	});
 
-	warn!("RUNNING?!");
-	QApp::new().register::<Backend>().load_qml(include_bytes!("../../static/Main.qml")).run();
+	//include_bytes_qml!("../../build/index.html", "qt/qml/App");
+
+	let port = start_asset_server();
+	let web_root = format!("http://127.0.0.1:{port}/");
+
+	let qml = MAIN_QML_TEMPLATE.replace("__WEB_ROOT__", &web_root);
+
+	QApp::new()
+		.register::<Backend>()
+		.load_qml(qml.as_bytes())
+		.run();
 
 	#[cfg(windows)]
 	futures::executor::block_on(plugins::deactivate_plugins());
 
 	tokio::spawn(elgato::reset_devices());
+}
+
+use include_dir::{include_dir, Dir};
+use tiny_http::{Server, Response, Header};
+use std::{net::TcpListener, thread};
+
+// $CARGO_MANIFEST_DIR interpolation is a documented include_dir feature —
+// this is resolved at compile time, relative to the crate root, no build.rs needed.
+static WEB_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/../build");
+
+fn start_asset_server() -> u16 {
+	let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+	let port = listener.local_addr().unwrap().port();
+	let server = Server::from_listener(listener, None).unwrap();
+
+	thread::spawn(move || {
+		for request in server.incoming_requests() {
+			let path = request.url().trim_start_matches('/');
+			let path = if path.is_empty() { "index.html" } else { path };
+
+			// Fall back to index.html for client-side routing (SvelteKit etc.)
+			let file = WEB_DIR.get_file(path).or_else(|| WEB_DIR.get_file("index.html"));
+
+			let response = match file {
+				Some(f) => {
+					let mime = mime_guess::from_path(f.path()).first_or_octet_stream();
+					Response::from_data(f.contents())
+						.with_header(Header::from_bytes(&b"Content-Type"[..], mime.essence_str().as_bytes()).unwrap())
+				}
+				None => Response::from_data(&b"Not Found"[..][..]).with_status_code(404),
+			};
+
+			let _ = request.respond(response);
+		}
+	});
+
+	port
 }
 
 command_macros::generate_handler![

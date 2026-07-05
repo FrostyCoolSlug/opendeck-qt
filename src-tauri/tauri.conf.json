@@ -7,8 +7,8 @@
 		"devUrl": "http://localhost:5173"
 	},
 	"bundle": {
-		"active": true,
-		"targets": "all",
+		"active": false,
+		"targets": [],
 		"resources": { "target/plugins/": "plugins/" },
 		"linux": {
 			"deb": {

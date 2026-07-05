@@ -22,23 +22,27 @@ ApplicationWindow {
         channel.registerObject("backend", Backend)
     }
 
+    // Every 10 seconds we want to force a garbage collection, to hopefully keep the memory usage down.
+    Timer {
+        id: forceJavaScriptGC
+        interval: 10000
+        repeat: true
+        running: true
+        onTriggered: webView.runJavaScript(`if (window.gc) window.gc();`)
+    }
+
     WebEngineView {
         id: webView
         anchors.fill: parent
         webChannel: channel
-
-        Component.onCompleted: {
-            webView.url = "http://127.0.0.1:5173/"
-        }
+        url: "__WEB_ROOT__"
 
         // Log JS Console messages to the terminal
         onJavaScriptConsoleMessage: function (level, message, lineNumber, sourceID) {
             console.log("[JS]", message, "(" + sourceID + ":" + lineNumber + ")")
         }
 
-        settings {
-            localContentCanAccessRemoteUrls: false
-            localContentCanAccessFileUrls: true
-        }
+        settings.localContentCanAccessRemoteUrls: true
+        settings.localContentCanAccessFileUrls: true
     }
 }

@@ -1,4 +1,7 @@
-use std::fs;
+use std::{env, fs};
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use walkdir::WalkDir;
 
 fn main() {
 	#[cfg(not(debug_assertions))]

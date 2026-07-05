@@ -11,6 +11,7 @@ edition = "2024"
 [build-dependencies]
 tauri-build = { version = "2.5", features = [] }
 built = { version = "0.8", features = ["dependency-tree", "git2"] }
+walkdir = "2.5.0"
 
 [dependencies]
 # Large, fundamental libraries
@@ -29,6 +30,8 @@ qtbridge = { git = "https://github.com/qt/qtbridge-rust", features = ["serde_jso
 env_logger = "0.11.11"
 command_macros = { path = "../command_macros" }
 dirs = "5"
+mime_guess = "2"
+include_dir = "0.7"
 
 # Smaller utility libraries
 dashmap = { version = "6.1", features = ["serde"] }
