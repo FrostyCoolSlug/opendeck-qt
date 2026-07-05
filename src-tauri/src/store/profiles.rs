@@ -9,6 +9,7 @@ use std::sync::LazyLock;
 
 use anyhow::{Context, anyhow};
 use dashmap::DashMap;
+use log::{debug, warn};
 use serde::{Deserialize, Serialize};
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tokio::task::JoinHandle;
@@ -239,6 +240,7 @@ pub fn get_device_profiles(device: &str) -> Result<Vec<String>, anyhow::Error> {
 	let mut profiles: Vec<String> = vec![];
 
 	let device_path = config_dir().join("profiles").join(device);
+
 	fs::create_dir_all(&device_path)?;
 	let entries = fs::read_dir(device_path)?;
 

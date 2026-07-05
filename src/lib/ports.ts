@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "../lib/qt/qt.ts";
 
 let portBase = 57116;
 let initialised = false;

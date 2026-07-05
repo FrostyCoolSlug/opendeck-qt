@@ -25,6 +25,11 @@ hidapi = "2.6"
 image = { version = "0.25", default-features = false, features = ["bmp", "jpeg"] }
 streamdeck-strip-render = { git = "https://github.com/FrostyCoolSlug/streamdeck-strip-render", rev = "5a18406c" }
 
+qtbridge = { git = "https://github.com/qt/qtbridge-rust", features = ["serde_json"] }
+env_logger = "0.11.11"
+command_macros = { path = "../command_macros" }
+dirs = "5"
+
 # Smaller utility libraries
 dashmap = { version = "6.1", features = ["serde"] }
 futures = "0.3"

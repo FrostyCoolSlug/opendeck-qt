@@ -15,8 +15,8 @@
 	import { CanvasLock, renderImage } from "$lib/rendererHelper";
 	import { settings } from "$lib/settings";
 
-	import { invoke } from "@tauri-apps/api/core";
-	import { listen } from "@tauri-apps/api/event";
+	import { invoke } from "../lib/qt/qt.ts";
+	import { listen } from "../lib/qt/qt.ts";
 	import { tick } from "svelte";
 
 	export let context: Context | null;

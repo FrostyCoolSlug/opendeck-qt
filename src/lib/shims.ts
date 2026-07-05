@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "../lib/qt/qt.ts";
 
 globalThis.open = (url?: string | URL) => {
 	if (url) invoke("open_url", { url });

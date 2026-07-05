@@ -2,7 +2,7 @@ use super::Error;
 
 use crate::shared::ActionContext;
 
-use tauri::command;
+use command_macros::command;
 
 #[command]
 pub async fn make_info(plugin: String) -> Result<crate::plugins::info_param::Info, Error> {

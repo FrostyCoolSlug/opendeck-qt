@@ -48,14 +48,20 @@ pub static DEVICES: LazyLock<DashMap<String, DeviceInfo>> = LazyLock::new(DashMa
 
 /// Get the application configuration directory.
 pub fn config_dir() -> std::path::PathBuf {
-	let app_handle = crate::APP_HANDLE.get().unwrap();
-	app_handle.path().app_config_dir().unwrap()
+	let base = dirs::config_dir().expect("no config dir available");
+	base.join("opendeck")
+
+	// let app_handle = crate::APP_HANDLE.get().unwrap();
+	// app_handle.path().app_config_dir().unwrap()
 }
 
 /// Get the application log directory.
 pub fn log_dir() -> std::path::PathBuf {
-	let app_handle = crate::APP_HANDLE.get().unwrap();
-	app_handle.path().app_log_dir().unwrap()
+	let base = dirs::data_local_dir().expect("no data local dir available");
+	base.join("opendeck").join("logs")
+
+	// let app_handle = crate::APP_HANDLE.get().unwrap();
+	// app_handle.path().app_log_dir().unwrap()
 }
 
 /// Get whether or not the application is running inside the Flatpak sandbox.

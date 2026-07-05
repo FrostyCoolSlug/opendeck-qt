@@ -3,7 +3,8 @@ use super::Error;
 use crate::shared::DEVICES;
 use crate::store::profiles::{PROFILE_SAVE_DEBOUNCE, PROFILE_STORES, acquire_locks_mut, get_device_profiles, save_profile};
 
-use tauri::{AppHandle, Emitter, Manager, command};
+use crate::qt::events::emit;
+use command_macros::command;
 
 #[command]
 pub fn get_profiles(device: &str) -> Result<Vec<String>, Error> {
@@ -113,8 +114,7 @@ pub async fn rename_profile(device: String, old_id: String, new_id: String, reta
 	Ok(())
 }
 
-pub async fn rerender_images(app: &AppHandle) -> Result<(), anyhow::Error> {
-	let window = app.get_webview_window("main").unwrap();
-	window.emit("rerender_images", ())?;
+pub async fn rerender_images() -> Result<(), anyhow::Error> {
+	emit("rerender_images", ());
 	Ok(())
 }

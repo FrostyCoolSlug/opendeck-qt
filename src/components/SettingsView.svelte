@@ -12,9 +12,9 @@
 	import { settings } from "$lib/settings";
 	import { PRODUCT_NAME } from "$lib/singletons";
 
-	import { invoke } from "@tauri-apps/api/core";
-	import { listen } from "@tauri-apps/api/event";
-	import { message } from "@tauri-apps/plugin-dialog";
+	import { invoke } from "../lib/qt/qt.ts";
+	import { listen } from "../lib/qt/qt.ts";
+	// import { message } from "@tauri-apps/plugin-dialog";
 
 	let showPopup: boolean;
 	let buildInfo: string;
@@ -38,15 +38,17 @@
 	});
 
 	async function backupConfig() {
-		await message($t("settings.backup_config.prompt"), { title: $t("settings.backup_config.title"), buttons: { ok: $t("dialog.ok") } });
-		if (await invoke("backup_config_directory")) {
-			await message($t("settings.backup_config.success.prompt"), { title: $t("settings.backup_config.success.title"), buttons: { ok: $t("dialog.ok") } });
-		}
+		// TODO
+		// await message($t("settings.backup_config.prompt"), { title: $t("settings.backup_config.title"), buttons: { ok: $t("dialog.ok") } });
+		// if (await invoke("backup_config_directory")) {
+		// 	await message($t("settings.backup_config.success.prompt"), { title: $t("settings.backup_config.success.title"), buttons: { ok: $t("dialog.ok") } });
+		// }
 	}
 
 	async function restoreConfig() {
-		await message($t("settings.restore_config.prompt"), { title: $t("settings.restore_config.title"), buttons: { ok: $t("dialog.ok") } });
-		await invoke("restore_config_directory");
+		// TODO
+		// await message($t("settings.restore_config.prompt"), { title: $t("settings.restore_config.title"), buttons: { ok: $t("dialog.ok") } });
+		// await invoke("restore_config_directory");
 	}
 </script>
 

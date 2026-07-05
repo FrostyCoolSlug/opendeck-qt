@@ -2,7 +2,7 @@ pub mod info_param;
 pub mod manifest;
 mod webserver;
 
-use crate::APP_HANDLE;
+use crate::{MessageBus, MESSAGE_BUS};
 use crate::built_info::TARGET;
 use crate::shared::{CATEGORIES, Category, config_dir, convert_icon, is_flatpak, log_dir};
 
@@ -11,7 +11,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::{LazyLock, mpsc};
 use std::{fs, path};
 
-use tauri::{AppHandle, Manager};
+use tauri::{Manager};
 
 use futures::StreamExt;
 use tokio::net::{TcpListener, TcpStream};
@@ -212,35 +212,36 @@ pub async fn initialise_plugin(path: path::PathBuf, spawner_tx: mpsc::Sender<Spa
 	];
 
 	if code_path.to_lowercase().ends_with(".html") || code_path.to_lowercase().ends_with(".htm") || code_path.to_lowercase().ends_with(".xhtml") {
-		let url = format!("http://localhost:{}/", *PORT_BASE + 2) + path.join(code_path).to_str().unwrap();
-		let window = tauri::WebviewWindowBuilder::new(APP_HANDLE.get().unwrap(), plugin_uuid.replace('.', "_"), tauri::WebviewUrl::External(url.parse()?))
-			.title(manifest.name)
-			.visible(false)
-			.build()?;
-
-		if fs::exists(path.join("debug")).unwrap_or(false) {
-			let _ = window.show();
-			window.open_devtools();
-		}
-
-		let info = info_param::make_info(plugin_uuid.to_owned(), manifest.version, false).await;
-		window.eval(format!(
-			r#"const opendeckInit = () => {{
-				try {{
-					if (document.readyState !== "complete") throw new Error("not ready");
-					if (typeof connectOpenActionSocket === "function") connectOpenActionSocket({port}, "{uuid}", "{event}", `{info}`);
-					else connectElgatoStreamDeckSocket({port}, "{uuid}", "{event}", `{info}`);
-				}} catch (e) {{
-					setTimeout(opendeckInit, 10);
-				}}
-			}};
-			opendeckInit();
-			"#,
-			port = *PORT_BASE,
-			uuid = plugin_uuid,
-			event = "registerPlugin",
-			info = serde_json::to_string(&info)?
-		))?;
+		warn!("HTML Apps Not Currently Supported");
+		// let url = format!("http://localhost:{}/", *PORT_BASE + 2) + path.join(code_path).to_str().unwrap();
+		// let window = tauri::WebviewWindowBuilder::new(APP_HANDLE.get().unwrap(), plugin_uuid.replace('.', "_"), tauri::WebviewUrl::External(url.parse()?))
+		// 	.title(manifest.name)
+		// 	.visible(false)
+		// 	.build()?;
+		//
+		// if fs::exists(path.join("debug")).unwrap_or(false) {
+		// 	let _ = window.show();
+		// 	window.open_devtools();
+		// }
+		//
+		// let info = info_param::make_info(plugin_uuid.to_owned(), manifest.version, false).await;
+		// window.eval(format!(
+		// 	r#"const opendeckInit = () => {{
+		// 		try {{
+		// 			if (document.readyState !== "complete") throw new Error("not ready");
+		// 			if (typeof connectOpenActionSocket === "function") connectOpenActionSocket({port}, "{uuid}", "{event}", `{info}`);
+		// 			else connectElgatoStreamDeckSocket({port}, "{uuid}", "{event}", `{info}`);
+		// 		}} catch (e) {{
+		// 			setTimeout(opendeckInit, 10);
+		// 		}}
+		// 	}};
+		// 	opendeckInit();
+		// 	"#,
+		// 	port = *PORT_BASE,
+		// 	uuid = plugin_uuid,
+		// 	event = "registerPlugin",
+		// 	info = serde_json::to_string(&info)?
+		// ))?;
 
 		INSTANCES.lock().await.insert(plugin_uuid, PluginInstance::Webview);
 	} else if code_path.to_lowercase().ends_with(".js") || code_path.to_lowercase().ends_with(".mjs") || code_path.to_lowercase().ends_with(".cjs") {
@@ -355,7 +356,7 @@ pub async fn initialise_plugin(path: path::PathBuf, spawner_tx: mpsc::Sender<Spa
 	Ok(())
 }
 
-pub async fn deactivate_plugin(app: &AppHandle, uuid: &str) -> Result<(), anyhow::Error> {
+pub async fn deactivate_plugin(uuid: &str) -> Result<(), anyhow::Error> {
 	{
 		let mut namespaces = DEVICE_NAMESPACES.write().await;
 		if let Some((namespace, _)) = namespaces.clone().iter().find(|(_, plugin)| uuid == **plugin) {
@@ -374,10 +375,10 @@ pub async fn deactivate_plugin(app: &AppHandle, uuid: &str) -> Result<(), anyhow
 	if let Some(instance) = INSTANCES.lock().await.remove(uuid) {
 		match instance {
 			PluginInstance::Webview => {
-				if let Some(window) = app.get_webview_window(&uuid.replace('.', "_")) {
-					window.close()?;
-					tokio::time::sleep(std::time::Duration::from_millis(10)).await;
-				}
+				// if let Some(window) = app.get_webview_window(&uuid.replace('.', "_")) {
+				// 	window.close()?;
+				// 	tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+				// }
 			}
 			PluginInstance::Node(mut child) | PluginInstance::Wine(mut child) | PluginInstance::Native(mut child) => {
 				child.kill()?;
@@ -397,9 +398,8 @@ pub async fn deactivate_plugins() {
 		instances.keys().cloned().collect::<Vec<_>>()
 	};
 
-	let app = APP_HANDLE.get().unwrap();
 	for uuid in uuids {
-		let _ = deactivate_plugin(app, &uuid).await;
+		let _ = deactivate_plugin(&uuid).await;
 	}
 }
 
@@ -412,35 +412,36 @@ pub fn initialise_plugins() {
 	let _ = fs::create_dir_all(&plugin_dir);
 	let _ = fs::create_dir_all(log_dir().join("plugins"));
 
-	if let Ok(Ok(entries)) = APP_HANDLE.get().unwrap().path().resolve("plugins", tauri::path::BaseDirectory::Resource).map(fs::read_dir) {
-		for entry in entries.flatten() {
-			if let Err(error) = (|| -> Result<(), anyhow::Error> {
-				let builtin_version = semver::Version::parse(&serde_json::from_slice::<manifest::PluginManifest>(&fs::read(entry.path().join("manifest.json"))?)?.version)?;
-				let existing_path = plugin_dir.join(entry.file_name());
-				if (|| -> Result<(), anyhow::Error> {
-					let existing_version = semver::Version::parse(&serde_json::from_slice::<manifest::PluginManifest>(&fs::read(existing_path.join("manifest.json"))?)?.version)?;
-					if existing_version < builtin_version {
-						Err(anyhow::anyhow!("builtin version is newer than existing version"))
-					} else {
-						Ok(())
-					}
-				})()
-				.is_err()
-				{
-					if existing_path.exists() {
-						fs::rename(&existing_path, existing_path.with_extension("old"))?;
-					}
-					if crate::shared::copy_dir(entry.path(), &existing_path).is_err() && existing_path.with_extension("old").exists() {
-						fs::rename(existing_path.with_extension("old"), &existing_path)?;
-					}
-					let _ = fs::remove_dir_all(existing_path.with_extension("old"));
-				}
-				Ok(())
-			})() {
-				error!("Failed to upgrade builtin plugin {}: {}", entry.file_name().to_string_lossy(), error);
-			}
-		}
-	}
+	// TODO: Fix this, it just updates the config plugins with internal ones if they're outdated
+	// if let Ok(Ok(entries)) = APP_HANDLE.get().unwrap().path().resolve("plugins", tauri::path::BaseDirectory::Resource).map(fs::read_dir) {
+	// 	for entry in entries.flatten() {
+	// 		if let Err(error) = (|| -> Result<(), anyhow::Error> {
+	// 			let builtin_version = semver::Version::parse(&serde_json::from_slice::<manifest::PluginManifest>(&fs::read(entry.path().join("manifest.json"))?)?.version)?;
+	// 			let existing_path = plugin_dir.join(entry.file_name());
+	// 			if (|| -> Result<(), anyhow::Error> {
+	// 				let existing_version = semver::Version::parse(&serde_json::from_slice::<manifest::PluginManifest>(&fs::read(existing_path.join("manifest.json"))?)?.version)?;
+	// 				if existing_version < builtin_version {
+	// 					Err(anyhow::anyhow!("builtin version is newer than existing version"))
+	// 				} else {
+	// 					Ok(())
+	// 				}
+	// 			})()
+	// 			.is_err()
+	// 			{
+	// 				if existing_path.exists() {
+	// 					fs::rename(&existing_path, existing_path.with_extension("old"))?;
+	// 				}
+	// 				if crate::shared::copy_dir(entry.path(), &existing_path).is_err() && existing_path.with_extension("old").exists() {
+	// 					fs::rename(existing_path.with_extension("old"), &existing_path)?;
+	// 				}
+	// 				let _ = fs::remove_dir_all(existing_path.with_extension("old"));
+	// 			}
+	// 			Ok(())
+	// 		})() {
+	// 			error!("Failed to upgrade builtin plugin {}: {}", entry.file_name().to_string_lossy(), error);
+	// 		}
+	// 	}
+	// }
 
 	let entries = match fs::read_dir(&plugin_dir) {
 		Ok(p) => p,
@@ -451,7 +452,11 @@ pub fn initialise_plugins() {
 	};
 
 	let (tx, rx) = mpsc::channel::<SpawnRequest>();
-	APP_HANDLE.get().unwrap().manage(tx.clone());
+
+	// This can only ever fire once, so there shouldn't be secondary attempts to set
+	let _ = MESSAGE_BUS.set(MessageBus {
+		tx: tx.clone()
+	});
 
 	// Use a dedicated spawner thread so that plugin processes don't die due to PR_SET_PDEATHSIG when the parent Tokio worker exits
 	std::thread::spawn(|| {

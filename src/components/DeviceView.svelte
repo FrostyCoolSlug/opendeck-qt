@@ -10,7 +10,7 @@
 	import { t } from "$lib/i18n";
 	import { inspectedInstance, inspectedParentAction } from "$lib/propertyInspector";
 
-	import { invoke } from "@tauri-apps/api/core";
+	import { invoke } from "../lib/qt/qt.ts";
 
 	export let device: DeviceInfo;
 	export let profile: Profile;

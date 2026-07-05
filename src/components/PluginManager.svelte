@@ -17,9 +17,9 @@
 	import { localisations, settings } from "$lib/settings";
 	import { actionList, deviceSelector, PRODUCT_NAME } from "$lib/singletons";
 
-	import { invoke } from "@tauri-apps/api/core";
-	import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
-	import { ask, message, open } from "@tauri-apps/plugin-dialog";
+	import { invoke } from "../lib/qt/qt.ts";
+	//import { onOpenUrl } from "@tauri-apps/plugin-deep-link";
+	//import { ask, message, open } from "@tauri-apps/plugin-dialog";
 
 	// @ts-expect-error
 	const fetch = window.fetchNative ?? window.fetch;
@@ -30,26 +30,28 @@
 	}, 1e3);
 
 	async function installPlugin(name: string, url: string | null, file: string | null, fallback_id: string | null) {
-		if (
-			!file &&
-			!(await ask($t("plugin_manager.install.prompt"), {
-				title: $t("plugin_manager.install.title", { name }),
-				okLabel: $t("dialog.yes"),
-				cancelLabel: $t("dialog.no"),
-			}))
-		)
+		// TODO: Fix this
+
+		// if (
+		// 	!file &&
+		// 	!(await ask($t("plugin_manager.install.prompt"), {
+		// 		title: $t("plugin_manager.install.title", { name }),
+		// 		okLabel: $t("dialog.yes"),
+		// 		cancelLabel: $t("dialog.no"),
+		// 	}))
+		// )
 			return;
-		try {
-			await invoke("install_plugin", { url, file, fallback_id });
-			message($t("plugin_manager.install.success", { name }), {
-				title: $t("plugin_manager.install.success.title", { name }),
-				buttons: { ok: $t("dialog.ok") },
-			});
-			$actionList?.reload();
-			installed = await invoke("list_plugins");
-		} catch (error: any) {
-			message(error, { title: $t("plugin_manager.install.error", { name }), buttons: { ok: $t("dialog.ok") } });
-		}
+		// try {
+		// 	await invoke("install_plugin", { url, file, fallback_id });
+		// 	message($t("plugin_manager.install.success", { name }), {
+		// 		title: $t("plugin_manager.install.success.title", { name }),
+		// 		buttons: { ok: $t("dialog.ok") },
+		// 	});
+		// 	$actionList?.reload();
+		// 	installed = await invoke("list_plugins");
+		// } catch (error: any) {
+		// 	message(error, { title: $t("plugin_manager.install.error", { name }), buttons: { ok: $t("dialog.ok") } });
+		// }
 	}
 
 	let choices: any[] | undefined;
@@ -94,7 +96,8 @@
 		try {
 			res = await (await fetch(endpoint)).json();
 		} catch (error: any) {
-			message(error, { title: $t("plugin_manager.install.error", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
+			// TODO: Fix this
+			//message(error, { title: $t("plugin_manager.install.error", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
 			return;
 		}
 
@@ -125,32 +128,36 @@
 	}
 
 	async function installPluginFile() {
-		const path = await open({ multiple: false, directory: false });
-		if (!path) return;
-		await installPlugin(path.split(/[\/\\]/).at(-1) ?? path, null, path, null);
+		return
+
+		// TODO: Fix this
+		// const path = await open({ multiple: false, directory: false });
+		// if (!path) return;
+		// await installPlugin(path.split(/[\/\\]/).at(-1) ?? path, null, path, null);
 	}
 
 	async function removePlugin(plugin: any) {
-		if (
-			!(await ask($t("plugin_manager.remove.prompt", { name: plugin.name }), {
-				title: $t("plugin_manager.remove.title", { name: plugin.name }),
-				okLabel: $t("dialog.yes"),
-				cancelLabel: $t("dialog.no"),
-			}))
-		)
+		// TODO: Fix this.
+		// if (
+		// 	!(await ask($t("plugin_manager.remove.prompt", { name: plugin.name }), {
+		// 		title: $t("plugin_manager.remove.title", { name: plugin.name }),
+		// 		okLabel: $t("dialog.yes"),
+		// 		cancelLabel: $t("dialog.no"),
+		// 	}))
+		// )
 			return;
-		try {
-			await invoke("remove_plugin", { id: plugin.id });
-			message($t("plugin_manager.remove.success", { name: plugin.name }), {
-				title: $t("plugin_manager.remove.success.title", { name: plugin.name }),
-				buttons: { ok: $t("dialog.ok") },
-			});
-			$actionList?.reload();
-			$deviceSelector?.reloadProfiles();
-			installed = await invoke("list_plugins");
-		} catch (error: any) {
-			message(error, { title: $t("plugin_manager.remove.error", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
-		}
+		// try {
+		// 	await invoke("remove_plugin", { id: plugin.id });
+		// 	message($t("plugin_manager.remove.success", { name: plugin.name }), {
+		// 		title: $t("plugin_manager.remove.success.title", { name: plugin.name }),
+		// 		buttons: { ok: $t("dialog.ok") },
+		// 	});
+		// 	$actionList?.reload();
+		// 	$deviceSelector?.reloadProfiles();
+		// 	installed = await invoke("list_plugins");
+		// } catch (error: any) {
+		// 	message(error, { title: $t("plugin_manager.remove.error", { name: plugin.name }), buttons: { ok: $t("dialog.ok") } });
+		// }
 	}
 
 	async function isUpdateAvailable(plugin: any): Promise<string | false> {
@@ -211,12 +218,13 @@
 
 	let query: string = "";
 
-	onOpenUrl((urls: string[]) => {
-		if (!urls[0].includes("installPlugin/")) return;
-		let id = urls[0].split("installPlugin/")[1];
-		if (!plugins[id]) return;
-		installPluginGitHub(id, plugins[id]);
-	});
+	// TODO: Fix this
+	// onOpenUrl((urls: string[]) => {
+	// 	if (!urls[0].includes("installPlugin/")) return;
+	// 	let id = urls[0].split("installPlugin/")[1];
+	// 	if (!plugins[id]) return;
+	// 	installPluginGitHub(id, plugins[id]);
+	// });
 </script>
 
 <button

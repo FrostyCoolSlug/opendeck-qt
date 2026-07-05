@@ -4,7 +4,7 @@
 	import { t } from "$lib/i18n";
 	import { renderImage, resizeImage } from "$lib/rendererHelper";
 
-	import { invoke } from "@tauri-apps/api/core";
+	import { invoke } from "../lib/qt/qt.ts";
 	import { onMount } from "svelte";
 
 	export let instance: ActionInstance;

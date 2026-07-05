@@ -9,7 +9,8 @@ use crate::shared::{CATEGORIES, Category, DEVICES, DeviceInfo};
 use std::collections::HashMap;
 
 use font_loader::system_fonts;
-use tauri::{Emitter, Manager, command};
+use command_macros::command;
+use crate::qt::events::emit;
 
 #[derive(Debug, serde_with::SerializeDisplay, serde::Deserialize)]
 pub struct Error {
@@ -49,8 +50,8 @@ impl From<anyhow::Error> for Error {
 }
 
 #[command]
-pub async fn restart(app: tauri::AppHandle) {
-	app.restart();
+pub async fn restart() {
+	//app.restart();
 }
 
 #[command]
@@ -59,8 +60,9 @@ pub async fn get_devices() -> dashmap::DashMap<String, DeviceInfo> {
 }
 
 pub async fn update_devices() {
-	let app = crate::APP_HANDLE.get().unwrap();
-	let _ = app.get_webview_window("main").unwrap().emit("devices", DEVICES.clone());
+	// let app = crate::APP_HANDLE.get().unwrap();
+	// let _ = app.get_webview_window("main").unwrap().emit("devices", DEVICES.clone());
+	emit("devices", DEVICES.clone())
 }
 
 #[command]

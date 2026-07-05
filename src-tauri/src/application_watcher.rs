@@ -5,8 +5,8 @@ use std::sync::LazyLock;
 
 use active_win_pos_rs::get_active_window;
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, RefreshKind, System};
-use tauri::{Emitter, Manager};
 use tokio::sync::RwLock;
+use crate::qt::events::emit;
 
 pub type ApplicationProfiles = HashMap<String, HashMap<String, String>>;
 impl NotProfile for ApplicationProfiles {}
@@ -26,13 +26,12 @@ pub struct SwitchProfileEvent {
 pub fn init_application_watcher() {
 	tokio::spawn(async move {
 		let mut previous = String::new();
-		let app_handle = crate::APP_HANDLE.get().unwrap();
 		loop {
 			let app_name = if let Ok(win) = get_active_window() {
 				let mut applications = APPLICATIONS.write().await;
 				if !applications.contains(&win.app_name) && !win.app_name.to_lowercase().starts_with(&crate::shared::PRODUCT_NAME.to_lowercase()) && !win.app_name.trim().is_empty() {
 					applications.push(win.app_name.clone());
-					let _ = app_handle.get_webview_window("main").unwrap().emit("applications", applications.clone());
+					emit("applications", applications.clone());
 				}
 				win.app_name
 			} else {
@@ -51,7 +50,7 @@ pub fn init_application_watcher() {
 					if crate::store::profiles::DEVICE_STORES.write().await.get_selected_profile(device).ok().as_ref() == Some(profile) {
 						continue;
 					}
-					let _ = app_handle.get_webview_window("main").unwrap().emit(
+					emit(
 						"switch_profile",
 						SwitchProfileEvent {
 							device: device.clone(),

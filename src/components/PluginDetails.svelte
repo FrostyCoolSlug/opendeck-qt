@@ -6,7 +6,7 @@
 	import { t } from "$lib/i18n.ts";
 	import "$lib/shims.ts";
 
-	import { invoke } from "@tauri-apps/api/core";
+	import { invoke } from "../lib/qt/qt.ts";
 	import DOMPurify from "dompurify";
 	import { marked } from "marked";
 	import markedAlert from "marked-alert";

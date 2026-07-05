@@ -12,9 +12,9 @@
 	import { t } from "$lib/i18n";
 	import { inspectedInstance } from "$lib/propertyInspector";
 
-	import { invoke } from "@tauri-apps/api/core";
-	import { listen } from "@tauri-apps/api/event";
-	import { message } from "@tauri-apps/plugin-dialog";
+	import { invoke } from "../lib/qt/qt.ts";
+	import { listen } from "../lib/qt/qt.ts";
+	//import { message } from "@tauri-apps/plugin-dialog";
 
 	let folders: { [name: string]: string[] } = {};
 	let value: string;
@@ -86,14 +86,16 @@
 		// Check if a profile with the new ID already exists
 		const allProfiles = Object.values(folders).flat();
 		if (allProfiles.includes(newId)) {
-			message($t("profile_manager.rename.exists", { id: newId }), { title: $t("profile_manager.rename.failed"), buttons: { ok: $t("dialog.ok") } });
+			// TODO
+			//message($t("profile_manager.rename.exists", { id: newId }), { title: $t("profile_manager.rename.failed"), buttons: { ok: $t("dialog.ok") } });
 			return;
 		}
 
 		try {
 			await invoke("rename_profile", { device: device.id, oldId, newId, retain: false });
 		} catch (error: any) {
-			message(error, { title: $t("profile_manager.rename.failed"), buttons: { ok: $t("dialog.ok") } });
+			// TODO
+			//message(error, { title: $t("profile_manager.rename.failed"), buttons: { ok: $t("dialog.ok") } });
 			console.error(error);
 		}
 

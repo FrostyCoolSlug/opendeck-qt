@@ -14,7 +14,7 @@ export type Settings = {
 	disableelgato: boolean;
 };
 
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "../lib/qt/qt.ts";
 import { type Writable, writable } from "svelte/store";
 import { locale } from "./i18n.ts";
 

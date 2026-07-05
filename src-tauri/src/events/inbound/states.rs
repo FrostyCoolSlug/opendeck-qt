@@ -58,7 +58,7 @@ pub async fn set_title(event: ContextAndPayloadEvent<SetTitlePayload>) -> Result
 				state.text = event.payload.title.clone().unwrap_or(instance.action.states[index].text.clone());
 			}
 		}
-		update_state(crate::APP_HANDLE.get().unwrap(), instance.context.clone(), &mut locks).await?;
+		update_state(instance.context.clone(), &mut locks).await?;
 	}
 	save_profile(&event.context.device, &mut locks).await?;
 
@@ -95,7 +95,7 @@ pub async fn set_image(mut event: ContextAndPayloadEvent<SetImagePayload>) -> Re
 				state.image = event.payload.image.clone().unwrap_or(instance.action.states[index].image.clone());
 			}
 		}
-		update_state(crate::APP_HANDLE.get().unwrap(), instance.context.clone(), &mut locks).await?;
+		update_state(instance.context.clone(), &mut locks).await?;
 	}
 
 	if let Some(image) = &event.payload.image
@@ -220,7 +220,7 @@ pub async fn set_feedback(event: ContextAndPayloadEvent<Value>) -> Result<(), an
 			}
 		}
 
-		update_state(crate::APP_HANDLE.get().unwrap(), instance.context.clone(), &mut locks).await?;
+		update_state(instance.context.clone(), &mut locks).await?;
 	}
 
 	Ok(())
@@ -234,7 +234,7 @@ pub async fn set_feedback_layout(event: ContextAndPayloadEvent<SetFeedbackLayout
 		crate::shared::initialise_encoder_layout(&mut instance.action, Some(layout_name))?;
 
 		// Trigger a state update; should cause a redraw
-		update_state(crate::APP_HANDLE.get().unwrap(), instance.context.clone(), &mut locks).await?;
+		update_state(instance.context.clone(), &mut locks).await?;
 	}
 	Ok(())
 }
@@ -247,7 +247,7 @@ pub async fn set_state(event: ContextAndPayloadEvent<SetStatePayload>) -> Result
 			return Ok(());
 		}
 		instance.current_state = event.payload.state;
-		update_state(crate::APP_HANDLE.get().unwrap(), instance.context.clone(), &mut locks).await?;
+		update_state(instance.context.clone(), &mut locks).await?;
 	}
 	save_profile(&event.context.device, &mut locks).await?;
 

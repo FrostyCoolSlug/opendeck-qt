@@ -5,9 +5,9 @@
 	import { t } from "$lib/i18n";
 	import { profileManager } from "$lib/singletons";
 
-	import { invoke } from "@tauri-apps/api/core";
-	import { listen } from "@tauri-apps/api/event";
-	import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
+	import { invoke } from "../lib/qt/qt.ts";
+	import { listen } from "../lib/qt/qt.ts";
+	// import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 
 	export let devices: { [id: string]: DeviceInfo } = {};
 	export let value: string;
@@ -46,7 +46,8 @@
 
 	let buildInfo: string;
 	(async () => (buildInfo = await invoke("get_build_info")))();
-	const window = getCurrentWindow();
+	// TODO: Fix
+	// const window = getCurrentWindow();
 
 	$: {
 		if (devices[value]) {
@@ -57,8 +58,10 @@
 			(async () => {
 				const width = Math.min(idealWidth, screen.availWidth);
 				const height = Math.min(idealHeight, screen.availHeight);
-				await window.setMinSize(new LogicalSize(width, height));
-				await window.setSize(new LogicalSize(width, height));
+
+				// TODO: Fix
+				// await window.setMinSize(new LogicalSize(width, height));
+				// await window.setSize(new LogicalSize(width, height));
 			})();
 		}
 	}

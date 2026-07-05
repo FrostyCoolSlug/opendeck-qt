@@ -3,11 +3,12 @@ use super::Error;
 use crate::shared::{Action, ActionContext, ActionInstance, ActionState, Context, config_dir};
 use crate::store::profiles::{LocksMut, acquire_locks, acquire_locks_mut, get_instance_mut, get_slot, get_slot_mut, save_profile};
 
-use tauri::{AppHandle, Emitter, Manager, command};
+use crate::qt::events::emit;
+use command_macros::command;
 use tokio::fs::remove_dir_all;
 
 #[command]
-pub async fn create_instance(app: AppHandle, mut action: Action, context: Context) -> Result<Option<ActionInstance>, Error> {
+pub async fn create_instance(mut action: Action, context: Context) -> Result<Option<ActionInstance>, Error> {
 	if !action.controllers.contains(&context.controller) {
 		return Ok(None);
 	}
@@ -41,7 +42,7 @@ pub async fn create_instance(app: AppHandle, mut action: Action, context: Contex
 				image: "opendeck/toggle-action.png".to_owned(),
 				..Default::default()
 			});
-			let _ = update_state(&app, parent.context.clone(), &mut locks).await;
+			let _ = update_state(parent.context.clone(), &mut locks).await;
 		}
 
 		save_profile(&context.device, &mut locks).await?;
@@ -185,7 +186,7 @@ pub async fn remove_instance(context: ActionContext) -> Result<(), Error> {
 			}
 			if !children.is_empty() {
 				instance.states.pop();
-				let _ = update_state(crate::APP_HANDLE.get().unwrap(), instance.context.clone(), &mut locks).await;
+				let _ = update_state(instance.context.clone(), &mut locks).await;
 			}
 		}
 	}
@@ -201,15 +202,14 @@ struct UpdateStateEvent {
 	contents: Option<ActionInstance>,
 }
 
-pub async fn update_state(app: &AppHandle, context: ActionContext, locks: &mut LocksMut<'_>) -> Result<(), anyhow::Error> {
-	let window = app.get_webview_window("main").unwrap();
-	window.emit(
+pub async fn update_state(context: ActionContext, locks: &mut LocksMut<'_>) -> Result<(), anyhow::Error> {
+	emit(
 		"update_state",
 		UpdateStateEvent {
 			contents: get_instance_mut(&context, locks).await?.cloned(),
 			context,
 		},
-	)?;
+	);
 	Ok(())
 }
 
@@ -266,8 +266,9 @@ struct KeyMovedEvent {
 	pressed: bool,
 }
 
-pub async fn key_moved(app: &AppHandle, context: Context, pressed: bool) -> Result<(), anyhow::Error> {
-	let window = app.get_webview_window("main").unwrap();
-	window.emit("key_moved", KeyMovedEvent { context, pressed })?;
+pub async fn key_moved(context: Context, pressed: bool) -> Result<(), anyhow::Error> {
+	// let window = app.get_webview_window("main").unwrap();
+	// window.emit("key_moved", KeyMovedEvent { context, pressed })?;
+	emit("key_moved", KeyMovedEvent { context, pressed });
 	Ok(())
 }

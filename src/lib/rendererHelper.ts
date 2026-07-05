@@ -3,7 +3,7 @@ import type { Context } from "./Context.ts";
 
 import { getWebserverUrl } from "./ports.ts";
 
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "../lib/qt/qt.ts";
 
 export function getImage(image: string | undefined, fallback: string | undefined): string {
 	if (!image) return fallback ? getImage(fallback, undefined) : "/alert.png";

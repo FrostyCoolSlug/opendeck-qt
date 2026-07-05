@@ -1,12 +1,13 @@
 use super::Error;
 
-use crate::plugins::{SpawnRequest, deactivate_plugin, initialise_plugin};
+use crate::plugins::{deactivate_plugin, initialise_plugin};
 use crate::shared::{config_dir, log_dir};
 use crate::store::profiles::{acquire_locks, get_instance};
 
-use std::sync::mpsc;
+use crate::MESSAGE_BUS;
+use crate::qt::events::emit;
+use command_macros::command;
 
-use tauri::{AppHandle, Emitter, Manager, command};
 use tokio::fs;
 
 #[derive(serde::Serialize)]
@@ -22,7 +23,7 @@ pub struct PluginInfo {
 }
 
 #[command]
-pub async fn list_plugins(app: AppHandle) -> Result<Vec<PluginInfo>, Error> {
+pub async fn list_plugins() -> Result<Vec<PluginInfo>, Error> {
 	let mut plugins = vec![];
 
 	let mut entries = match fs::read_dir(&config_dir().join("plugins")).await {
@@ -31,10 +32,13 @@ pub async fn list_plugins(app: AppHandle) -> Result<Vec<PluginInfo>, Error> {
 	};
 
 	let registered = crate::events::registered_plugins().await;
-	let builtins = match app.path().resolve("plugins", tauri::path::BaseDirectory::Resource).map(std::fs::read_dir) {
-		Ok(Ok(entries)) => entries.flatten().map(|x| x.file_name().to_str().unwrap().to_owned()).collect(),
-		_ => vec![],
-	};
+	// let builtins = match app.path().resolve("plugins", tauri::path::BaseDirectory::Resource).map(std::fs::read_dir) {
+	// 	Ok(Ok(entries)) => entries.flatten().map(|x| x.file_name().to_str().unwrap().to_owned()).collect(),
+	// 	_ => vec![],
+	// };
+
+	// TODO: Fix Builtins
+	let builtins = vec![];
 
 	while let Ok(Some(entry)) = entries.next_entry().await {
 		let path = match entry.metadata().await.unwrap().is_symlink() {
@@ -64,7 +68,7 @@ pub async fn list_plugins(app: AppHandle) -> Result<Vec<PluginInfo>, Error> {
 }
 
 #[command]
-pub async fn install_plugin(app: AppHandle, url: Option<String>, file: Option<String>, fallback_id: Option<String>) -> Result<(), Error> {
+pub async fn install_plugin(url: Option<String>, file: Option<String>, fallback_id: Option<String>) -> Result<(), Error> {
 	let bytes = match file {
 		None => {
 			let resp = match reqwest::get(url.unwrap()).await {
@@ -94,7 +98,7 @@ pub async fn install_plugin(app: AppHandle, url: Option<String>, file: Option<St
 		},
 	};
 
-	let _ = deactivate_plugin(&app, &id).await;
+	let _ = deactivate_plugin(&id).await;
 
 	let config_dir = config_dir();
 	let actual = config_dir.join("plugins").join(&id);
@@ -105,7 +109,7 @@ pub async fn install_plugin(app: AppHandle, url: Option<String>, file: Option<St
 	let temp = config_dir.join("temp").join(&id);
 	let _ = fs::rename(&actual, &temp).await;
 
-	let tx = (*app.state::<mpsc::Sender<SpawnRequest>>()).clone();
+	let tx = MESSAGE_BUS.get().unwrap().tx.clone();
 	if let Err(error) = crate::zip_extract::extract(std::io::Cursor::new(bytes), &config_dir.join("plugins")) {
 		log::error!("Failed to unzip file: {}", error);
 		let _ = fs::rename(&temp, &actual).await;
@@ -121,14 +125,11 @@ pub async fn install_plugin(app: AppHandle, url: Option<String>, file: Option<St
 	}
 	let _ = fs::remove_dir_all(config_dir.join("temp")).await;
 
-	use tauri_plugin_aptabase::EventTracker;
-	let _ = app.track_event("plugin_installed", Some(serde_json::json!({ "id": id.strip_suffix(".sdPlugin").unwrap_or(&id) })));
-
 	Ok(())
 }
 
 #[command]
-pub async fn remove_plugin(app: AppHandle, id: String) -> Result<(), Error> {
+pub async fn remove_plugin(id: String) -> Result<(), Error> {
 	let locks = acquire_locks().await;
 	let all = locks.profile_stores.all_from_plugin(&id);
 	drop(locks);
@@ -137,7 +138,7 @@ pub async fn remove_plugin(app: AppHandle, id: String) -> Result<(), Error> {
 		super::instances::remove_instance(context).await?;
 	}
 
-	deactivate_plugin(&app, &id).await?;
+	deactivate_plugin(&id).await?;
 	if let Err(error) = fs::remove_dir_all(config_dir().join("plugins").join(&id)).await {
 		return Err(anyhow::Error::from(error).into());
 	}
@@ -155,9 +156,9 @@ pub async fn remove_plugin(app: AppHandle, id: String) -> Result<(), Error> {
 }
 
 #[command]
-pub async fn reload_plugin(app: AppHandle, id: String) {
-	let _ = deactivate_plugin(&app, &id).await;
-	let tx = (*app.state::<mpsc::Sender<SpawnRequest>>()).clone();
+pub async fn reload_plugin(id: String) {
+	let _ = deactivate_plugin(&id).await;
+	let tx = MESSAGE_BUS.get().unwrap().tx.clone();
 	let _ = initialise_plugin(config_dir().join("plugins").join(&id), tx).await;
 
 	let locks = acquire_locks().await;
@@ -169,9 +170,7 @@ pub async fn reload_plugin(app: AppHandle, id: String) {
 		}
 	}
 
-	if let Some(window) = app.get_webview_window("main") {
-		let _ = window.emit("plugin_reloaded", &id);
-	}
+	emit("plugin_reloaded", &id);
 }
 
 #[command]
